@@ -12,6 +12,7 @@
         "php": ">=7.2",
         "marcosdipaolo/session": "^1.0"
     },
+    "license": "MIT",
     "autoload": {
         "psr-4": {
             "MDP\\Auth\\": "src/"
