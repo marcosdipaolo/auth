@@ -1,0 +1,23 @@
+{
+    "name": "marcosdipaolo/auth",
+    "type": "library",
+    "description": "An PHP Authentication Package",
+    "authors": [
+        {
+            "name": "Marcos Di Paolo",
+            "email": "marcosdipaolo@gmail.com"
+        }
+    ],
+    "require": {
+        "php": ">=7.2",
+        "marcosdipaolo/session": "^1.0"
+    },
+    "autoload": {
+        "psr-4": {
+            "MDP\\Auth\\": "src/"
+        },
+        "files": [
+            "src/helpers.php"
+        ]
+    }
+}

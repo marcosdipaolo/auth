@@ -1,0 +1,66 @@
+{
+    "_readme": [
+        "This file locks the dependencies of your project to a known state",
+        "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
+        "This file is @generated automatically"
+    ],
+    "content-hash": "fe8303eadc1cda3ac61aa3869e1d792e",
+    "packages": [
+        {
+            "name": "marcosdipaolo/session",
+            "version": "1.0.2",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/marcosdipaolo/session.git",
+                "reference": "40485c3b3b6f327955ebf272727b8a8e4b80d665"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/marcosdipaolo/session/zipball/40485c3b3b6f327955ebf272727b8a8e4b80d665",
+                "reference": "40485c3b3b6f327955ebf272727b8a8e4b80d665",
+                "shasum": ""
+            },
+            "require": {
+                "php": ">=7.2"
+            },
+            "type": "library",
+            "autoload": {
+                "psr-4": {
+                    "MDP\\": "src/"
+                },
+                "files": [
+                    "src/helpers.php"
+                ]
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "MIT"
+            ],
+            "authors": [
+                {
+                    "name": "Marcos Di Paolo",
+                    "email": "marcosdipaolo@gmail.com"
+                }
+            ],
+            "description": "A PHP Session package",
+            "keywords": [
+                "php",
+                "session"
+            ],
+            "support": {
+                "issues": "https://github.com/marcosdipaolo/session/issues",
+                "source": "https://github.com/marcosdipaolo/session/tree/1.0.2"
+            },
+            "time": "2021-01-06T23:51:52+00:00"
+        }
+    ],
+    "packages-dev": [],
+    "aliases": [],
+    "minimum-stability": "stable",
+    "stability-flags": [],
+    "prefer-stable": false,
+    "prefer-lowest": false,
+    "platform": [],
+    "platform-dev": [],
+    "plugin-api-version": "2.0.0"
+}
