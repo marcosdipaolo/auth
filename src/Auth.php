@@ -2,6 +2,7 @@
 
 namespace MDP\Auth;
 
+use MDP\Auth\Exceptions\AuthDbConnectionNotSet;
 use MDP\Auth\Exceptions\UserExistsException;
 use PDO;
 use PDOStatement;
@@ -21,7 +22,7 @@ class Auth
     /** @var string $emailField */
     private $emailField = "email";
 
-    public function __construct(PDO $pdo)
+    public function __construct(PDO $pdo = null)
     {
         $this->connection = $pdo;
     }
@@ -51,9 +52,13 @@ class Auth
      * @param string $username
      * @param string $password
      * @return bool
+     * @throws AuthDbConnectionNotSet
      */
     public function check(string $username, string $password): bool
     {
+        if (!$this->connection) {
+            throw new AuthDbConnectionNotSet();
+        }
         $sql = "SELECT * FROM {$this->usersTableName} 
                     WHERE {$this->loginField} = '{$username}'";
         /** @var PDOStatement $stmt */
@@ -69,10 +74,14 @@ class Auth
      * @param string $email
      * @param string $password
      * @return bool
+     * @throws AuthDbConnectionNotSet
      * @throws UserExistsException
      */
     public function register(string $username, string $email, string $password): bool
     {
+        if (!$this->connection) {
+            throw new AuthDbConnectionNotSet();
+        }
         $sql1 = "SELECT * FROM {$this->usersTableName} WHERE {$this->emailField} = '{$email}'";
         $stmt = $this->connection->query($sql1);
         if ($stmt->fetch()) {
@@ -158,9 +167,13 @@ class Auth
 
     /**
      * @return bool
+     * @throws AuthDbConnectionNotSet
      */
     private function usersTableExists(): bool
     {
+        if (!$this->connection) {
+            throw new AuthDbConnectionNotSet();
+        }
         $sql = "SELECT 1 FROM {$this->usersTableName}";
         $stmt = $this->connection->query($sql);
         try {

@@ -3,8 +3,11 @@
 use MDP\Auth\Auth;
 
 if (!function_exists('auth')) {
-    function auth(): Auth
+    function auth(PDO $pdo = null): Auth
     {
-        return new Auth();
+        if ($pdo && $pdo instanceof PDO) {
+            return new Auth($pdo);
+        }
+        return new Auth;
     }
 }

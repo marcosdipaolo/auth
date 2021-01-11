@@ -3,6 +3,8 @@
 ###
 The `Auth` constructor receives as a unique argument a `PDO` instance connected to your app's database.  
 This connection is necessary to check credentials and register users.  
+The rest of the operations can be performed without passing anything, like logging in or logging out a user, checking if there's a user logged in, or getting the logged user.   
+
 The login and logout method just puts or remove the user in the `user` session's key. In order to do so `Auth` makes use of the `marcosdipaolo/session` package.
 
 ### Usage
@@ -56,3 +58,9 @@ $auth->isUserLoggedIn(); // bool
 // Returns the logged user 
 $auth->user(); // MDP\Auth\Authenticatable logged user | null
 ```
+
+#### Helper `auth()`  
+
+The `auth()` helper return an instance of the Auth class.  
+Since many operations do not require a connection to the db, you are not required of passing the instance of the `PDO` class as an argument.   
+If you need to perform operations that requires a db connection, like `register`, or `check` you need to pass the `PDO` instance `auth($pdo)`.
