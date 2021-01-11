@@ -3,7 +3,7 @@
 ###
 The `Auth` constructor receives as a unique argument a `PDO` instance connected to your app's database.  
 This connection is necessary to check credentials and register users.  
-The login and logout method just put the user in the `user` session's key. In order to do so `Auth` makes use of the `marcosdipaolo/session` package.
+The login and logout method just puts or remove the user in the `user` session's key. In order to do so `Auth` makes use of the `marcosdipaolo/session` package.
 
 ### Usage
 #### Configuration
@@ -31,7 +31,7 @@ $auth->setUsersTableFields([
 $auth->setLoginField('email');  // default: 'email'
 ```
 #### Login and register
-In order to log a user in, you must use the login method passing as an argument an instance of a user, which class should be implementing the `\MDP\Auth\Autheticatable` interface. 
+In order to log a user in, you must use the login method passing as an argument an instance of a user, whose class should be implementing the `\MDP\Auth\Autheticatable` interface. 
 ```php
 /** @var \MDP\Auth\Auth $auth */// boolean;v
 
