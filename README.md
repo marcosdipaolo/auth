@@ -2,8 +2,7 @@
 ## A basic PHP Authentication Package
 ###
 The `Auth` constructor receives as a unique argument a `PDO` instance connected to your app's database.  
-This connection is necessary to check credentials and register users.  
-The rest of the operations can be performed without passing anything, like logging in or logging out a user, checking if there's a user logged in, or getting the logged user.   
+This connection is necessary to check credentials and register users. The rest of the operations can be performed without passing anything, like logging in or logging out a user, checking if there's a user logged in, or getting the logged user.   
 
 The login and logout method just puts or remove the user in the `user` session's key. In order to do so `Auth` makes use of the `marcosdipaolo/session` package.
 

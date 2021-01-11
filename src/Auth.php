@@ -34,12 +34,12 @@ class Auth
 
     public function login(Authenticatable $user): bool
     {
-        session()->put('user', $user);
+        return session()->put('user', $user);
     }
 
     public function logout(): bool
     {
-        session()->forget('user');
+        return session()->forget('user');
     }
 
     public function isUserLoggedIn(): bool
