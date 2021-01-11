@@ -4,5 +4,5 @@ namespace MDP\Auth;
 
 interface Authenticatable
 {
-
+    //
 }
