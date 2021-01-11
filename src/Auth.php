@@ -27,7 +27,7 @@ class Auth
         $this->connection = $pdo;
     }
 
-    public function user(): Authenticatable
+    public function user(): ?Authenticatable
     {
         return session()->get('user');
     }
