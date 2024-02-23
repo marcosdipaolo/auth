@@ -9,22 +9,19 @@ use PDOStatement;
 
 class Auth
 {
-    /** @var PDO $connection */
-    private $connection;
-    /** @var string $usersTableName */
-    private $usersTableName = "users";
-    /** @var string $loginField */
-    private $loginField = "email";
-    /** @var string $usernameField */
-    private $usernameField = "username";
-    /** @var string $passwordField */
-    private $passwordField = "password";
-    /** @var string $emailField */
-    private $emailField = "email";
+    private ?PDO $connection;
+    private string $usersTableName = "users";
+    private string $loginField = "email";
+    private string $usernameField = "username";
+    private string $passwordField = "password";
+    private string $emailField = "email";
+
+    public DatabaseTimestampsConfig $timestampsConfig;
 
     public function __construct(PDO $pdo = null)
     {
         $this->connection = $pdo;
+        $this->timestampsConfig = new DatabaseTimestampsConfig(false);
     }
 
     public function user(): ?Authenticatable
@@ -59,7 +56,7 @@ class Auth
         if (!$this->connection) {
             throw new AuthDbConnectionNotSet();
         }
-        $sql = "SELECT * FROM {$this->usersTableName} 
+        $sql = /** @lang SQL */"SELECT * FROM {$this->usersTableName} 
                     WHERE {$this->loginField} = '{$username}'";
         /** @var PDOStatement $stmt */
         $stmt = $this->connection->query($sql);
@@ -67,6 +64,16 @@ class Auth
         return !!count(array_filter($results, function (array $result) use ($password) {
             return password_verify($password, $result[$this->passwordField]);
         }));
+    }
+
+    public function enableTimestamps(string $createdAtFieldName = null, string $updatedAtFieldName = null): void {
+        $this->timestampsConfig->enabled = true;
+        if($createdAtFieldName) {
+            $this->timestampsConfig->createdAtFieldName = $createdAtFieldName;
+        }
+        if($createdAtFieldName) {
+            $this->timestampsConfig->updatedAtFieldName = $updatedAtFieldName;
+        }
     }
 
     /**
@@ -87,20 +94,28 @@ class Auth
         if ($stmt->fetch()) {
             throw new UserExistsException();
         }
-        $sql2 = "INSERT INTO {$this->usersTableName} ({$this->usernameField}, {$this->emailField}, {$this->passwordField}) VALUES (:{$this->usernameField}, :{$this->emailField}, :{$this->passwordField})";
+        $fieldNames = "{$this->usernameField}, {$this->emailField}, {$this->passwordField}";
+        $values = ":{$this->usernameField}, :{$this->emailField}, :{$this->passwordField}";
+        if ($this->timestampsConfig->enabled) {
+            $fieldNames .= " ,{$this->timestampsConfig->createdAtFieldName}, {$this->timestampsConfig->updatedAtFieldName}";
+            $values .= " ,:{$this->timestampsConfig->createdAtFieldName}, :{$this->timestampsConfig->updatedAtFieldName}";
+        }
+        $sql2 = "INSERT INTO {$this->usersTableName} ({$fieldNames}) VALUES ({$values})";
         $stmt2 = $this->connection->prepare($sql2);
         return $stmt2->execute([
             ":{$this->usernameField}" => $username,
             ":{$this->emailField}" => $email,
             ":{$this->passwordField}" => $this->hash($password),
+            ":{$this->timestampsConfig->createdAtFieldName}" => date("Y-m-d H:i:s"),
+            ":{$this->timestampsConfig->updatedAtFieldName}" => date("Y-m-d H:i:s"),
         ]);
     }
 
     /**
      * @param string $password
-     * @return false|string|null
+     * @return string
      */
-    private function hash(string $password)
+    private function hash(string $password): string
     {
         return password_hash($password, PASSWORD_BCRYPT);
     }
