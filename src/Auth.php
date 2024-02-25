@@ -9,14 +9,18 @@ use PDOStatement;
 
 class Auth
 {
-    private ?PDO $connection;
+    private PDO | NULL $connection;
+    /** @var string $usersTableName */
     private string $usersTableName = "users";
+    /** @var string $loginField */
     private string $loginField = "email";
+    /** @var string $usernameField */
     private string $usernameField = "username";
+    /** @var string $passwordField */
     private string $passwordField = "password";
+    /** @var string $emailField */
     private string $emailField = "email";
-
-    public DatabaseTimestampsConfig $timestampsConfig;
+    private DatabaseTimestampsConfig $timestampsConfig;
 
     public function __construct(PDO $pdo = null)
     {

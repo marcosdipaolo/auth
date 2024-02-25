@@ -9,10 +9,9 @@
         }
     ],
     "require": {
-        "php": ">=7.2",
+        "php": ">=8.2",
         "marcosdipaolo/session": "^1.0",
-        "ext-pdo": "*",
-        "psy/psysh": "@stable"
+        "ext-pdo": "*"
     },
     "license": "MIT",
     "autoload": {
