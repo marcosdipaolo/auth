@@ -1,6 +1,7 @@
 <?php declare(strict_types=1);
 
 use MDP\Auth\Auth;
+use MDP\Auth\Exceptions;
 
 class GeneralTest extends \PHPUnit\Framework\TestCase
 {
@@ -10,10 +11,12 @@ class GeneralTest extends \PHPUnit\Framework\TestCase
     {
         parent::__construct($name);
         $this->db = new \PDO("sqlite:" . __DIR__ . "/database.sqlite");
+        $this->createUsersTable();
         $this->auth = new Auth($this->db);
+        $this->auth->enableTimestamps();
     }
 
-    public function testAuthInstance()
+    public function testAuthInstance(): void
     {
         /**
          * @var mixed $auth
@@ -23,7 +26,7 @@ class GeneralTest extends \PHPUnit\Framework\TestCase
         $this->assertInstanceOf(Auth::class, $auth);
     }
 
-    private function createUsersTable()
+    private function createUsersTable(): void
     {
         $this->db->exec(
             "CREATE TABLE users(
@@ -35,5 +38,14 @@ class GeneralTest extends \PHPUnit\Framework\TestCase
                 updated_at DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
             )"
         );
+    }
+
+    /**
+     * @throws Exceptions\UserExistsException
+     * @throws Exceptions\AuthDbConnectionNotSet
+     */
+    public function testUserRegister(): void
+    {
+        $user = $this->auth->register("username", "an@email.com", "12345678");
     }
 }

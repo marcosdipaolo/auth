@@ -81,14 +81,10 @@ class Auth
     }
 
     /**
-     * @param string $username
-     * @param string $email
-     * @param string $password
-     * @return bool
      * @throws AuthDbConnectionNotSet
      * @throws UserExistsException
      */
-    public function register(string $username, string $email, string $password): bool
+    public function register(string $username, string $email, string $password): Authenticatable
     {
         if (!$this->connection) {
             throw new AuthDbConnectionNotSet();
@@ -101,18 +97,43 @@ class Auth
         $fieldNames = "{$this->usernameField}, {$this->emailField}, {$this->passwordField}";
         $values = ":{$this->usernameField}, :{$this->emailField}, :{$this->passwordField}";
         if ($this->timestampsConfig->enabled) {
-            $fieldNames .= " ,{$this->timestampsConfig->createdAtFieldName}, {$this->timestampsConfig->updatedAtFieldName}";
-            $values .= " ,:{$this->timestampsConfig->createdAtFieldName}, :{$this->timestampsConfig->updatedAtFieldName}";
+            $fieldNames .= ", {$this->timestampsConfig->createdAtFieldName}, {$this->timestampsConfig->updatedAtFieldName}";
+            $values .= ", :{$this->timestampsConfig->createdAtFieldName}, :{$this->timestampsConfig->updatedAtFieldName}";
         }
         $sql2 = "INSERT INTO {$this->usersTableName} ({$fieldNames}) VALUES ({$values})";
         $stmt2 = $this->connection->prepare($sql2);
-        return $stmt2->execute([
+        $bindings = [
             ":{$this->usernameField}" => $username,
             ":{$this->emailField}" => $email,
             ":{$this->passwordField}" => $this->hash($password),
             ":{$this->timestampsConfig->createdAtFieldName}" => date("Y-m-d H:i:s"),
             ":{$this->timestampsConfig->updatedAtFieldName}" => date("Y-m-d H:i:s"),
-        ]);
+        ];
+        if ($this->timestampsConfig->enabled) {
+            $bindings = [
+                ...$bindings,
+                ":{$this->timestampsConfig->createdAtFieldName}" => date("Y-m-d H:i:s"),
+                ":{$this->timestampsConfig->updatedAtFieldName}" => date("Y-m-d H:i:s")
+            ];
+
+        }
+        $stmt2->execute($bindings);
+        $stmt3 = $this->connection->query($sql1);
+        $userArr = $stmt3->fetch();
+        return new class (
+            $userArr["id"],
+            $userArr["username"],
+            $userArr["email"],
+            $userArr["password"]
+        ) extends Authenticatable {
+            public function __construct(
+                public int | string $id,
+                public string $username,
+                public string $email,
+                public string $password,
+            )
+            {}
+        };
     }
 
     /**
