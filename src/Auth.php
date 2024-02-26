@@ -9,7 +9,7 @@ use PDOStatement;
 
 class Auth
 {
-    private PDO | NULL $connection;
+    private PDO|null $connection;
     /** @var string $usersTableName */
     private string $usersTableName = "users";
     /** @var string $loginField */
@@ -60,7 +60,8 @@ class Auth
         if (!$this->connection) {
             throw new AuthDbConnectionNotSet();
         }
-        $sql = /** @lang SQL */"SELECT * FROM {$this->usersTableName} 
+        $sql = /** @lang SQL */
+            "SELECT * FROM {$this->usersTableName} 
                     WHERE {$this->loginField} = '{$username}'";
         /** @var PDOStatement $stmt */
         $stmt = $this->connection->query($sql);
@@ -70,12 +71,13 @@ class Auth
         }));
     }
 
-    public function enableTimestamps(string $createdAtFieldName = null, string $updatedAtFieldName = null): void {
+    public function enableTimestamps(string $createdAtFieldName = null, string $updatedAtFieldName = null): void
+    {
         $this->timestampsConfig->enabled = true;
-        if($createdAtFieldName) {
+        if ($createdAtFieldName) {
             $this->timestampsConfig->createdAtFieldName = $createdAtFieldName;
         }
-        if($createdAtFieldName) {
+        if ($createdAtFieldName) {
             $this->timestampsConfig->updatedAtFieldName = $updatedAtFieldName;
         }
     }
@@ -120,20 +122,12 @@ class Auth
         $stmt2->execute($bindings);
         $stmt3 = $this->connection->query($sql1);
         $userArr = $stmt3->fetch();
-        return new class (
+        return new AuthenticatedUser (
             $userArr["id"],
             $userArr["username"],
             $userArr["email"],
             $userArr["password"]
-        ) extends Authenticatable {
-            public function __construct(
-                public int | string $id,
-                public string $username,
-                public string $email,
-                public string $password,
-            )
-            {}
-        };
+        );
     }
 
     /**
@@ -218,10 +212,7 @@ class Auth
         $stmt = $this->connection->query($sql);
         try {
             $results = $stmt->fetchAll();
-            if (is_array($results)) {
-                return true;
-            }
-            return false;
+            return is_array($results);
         } catch (\Throwable $e) {
             return false;
         }
