@@ -15,5 +15,4 @@ class DatabaseTimestampsConfig
     {
         return $this->enabled;
     }
-
 }

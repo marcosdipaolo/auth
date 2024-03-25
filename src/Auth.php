@@ -2,7 +2,10 @@
 
 namespace MDP\Auth;
 
+use Dotenv\Dotenv;
+use Exception;
 use MDP\Auth\Exceptions\AuthDbConnectionNotSet;
+use MDP\Auth\Exceptions\TablesDoesNotExistsException;
 use MDP\Auth\Exceptions\UserExistsException;
 use PDO;
 use PDOStatement;
@@ -10,15 +13,11 @@ use PDOStatement;
 class Auth
 {
     private PDO|null $connection;
-    /** @var string $usersTableName */
     private string $usersTableName = "users";
-    /** @var string $loginField */
+    private string $failedLoginAttemptsTableName = "failed_login_attempts";
     private string $loginField = "email";
-    /** @var string $usernameField */
     private string $usernameField = "username";
-    /** @var string $passwordField */
     private string $passwordField = "password";
-    /** @var string $emailField */
     private string $emailField = "email";
     private DatabaseTimestampsConfig $timestampsConfig;
 
@@ -131,6 +130,33 @@ class Auth
     }
 
     /**
+     * @throws AuthDbConnectionNotSet
+     * @throws TablesDoesNotExistsException
+     */
+    public function exceededFailedLoginAttempts(string $ip_address): bool
+    {
+        if(!$this->tableExists($this->failedLoginAttemptsTableName)) {
+            throw new TablesDoesNotExistsException($this->failedLoginAttemptsTableName);
+        }
+        $minutes = intval($this->env('THROTTLE_MINUTES_CONFIG', "1"));
+        $attempts = intval($this->env('THROTTLE_LOGIN_ATTEMPS', "3"));
+        $sql = "SELECT * FROM {$this->failedLoginAttemptsTableName} fla " .
+            "WHERE ip_address = :ip_address AND " .
+            "{$this->timestampsConfig->createdAtFieldName} >= DATE_SUB(CURRENT_TIMESTAMP(), INTERVAL :minutes MINUTE)";
+        //var_dump($sql); die;
+        $stmt = $this->connection->prepare($sql);
+        if($stmt) {
+            $stmt->execute([
+                "ip_address" => $ip_address,
+                "minutes" => $minutes
+            ]);
+            $failedAttempts = $stmt->fetchAll();
+            return count($failedAttempts) >= ($attempts - 1);
+        }
+        return false;
+    }
+
+    /**
      * @param string $password
      * @return string
      */
@@ -168,6 +194,14 @@ class Auth
     }
 
     /**
+     * @param string $tableName
+     */
+    public function setFailedLoginAttemptsTableName(string $tableName): void
+    {
+        $this->failedLoginAttemptsTableName = $tableName;
+    }
+
+    /**
      * @param string $loginField
      */
     public function setLoginField(string $loginField): void
@@ -200,21 +234,26 @@ class Auth
     }
 
     /**
+     * @param string $tableName
      * @return bool
      * @throws AuthDbConnectionNotSet
      */
-    private function usersTableExists(): bool
+    public function tableExists(string $tableName): bool
     {
         if (!$this->connection) {
             throw new AuthDbConnectionNotSet();
         }
-        $sql = "SELECT 1 FROM {$this->usersTableName}";
-        $stmt = $this->connection->query($sql);
+        $sql = "SELECT 1 FROM {$tableName}";
         try {
-            $results = $stmt->fetchAll();
-            return is_array($results);
+            $this->connection->query($sql);
+            return true;
         } catch (\Throwable $e) {
             return false;
         }
+    }
+
+    private function env(string $key, string $default = ""): array|false|string
+    {
+        return getenv($key) ?: $default;
     }
 }
