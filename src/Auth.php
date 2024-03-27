@@ -2,8 +2,6 @@
 
 namespace MDP\Auth;
 
-use Dotenv\Dotenv;
-use Exception;
 use MDP\Auth\Exceptions\AuthDbConnectionNotSet;
 use MDP\Auth\Exceptions\TablesDoesNotExistsException;
 use MDP\Auth\Exceptions\UserExistsException;
@@ -14,11 +12,17 @@ class Auth
 {
     private PDO|null $connection;
     private string $usersTableName = "users";
+    private string $throttleControlIpAddressColumnName = "ip_address";
     private string $failedLoginAttemptsTableName = "failed_login_attempts";
     private string $loginField = "email";
     private string $usernameField = "username";
     private string $passwordField = "password";
     private string $emailField = "email";
+
+    public function setThrottleControlIpAddressColumnName(string $throttleControlIpAddressColumnName): void
+    {
+        $this->throttleControlIpAddressColumnName = $throttleControlIpAddressColumnName;
+    }
     private DatabaseTimestampsConfig $timestampsConfig;
 
     public function __construct(PDO $pdo = null)
@@ -255,5 +259,45 @@ class Auth
     private function env(string $key, string $default = ""): array|false|string
     {
         return getenv($key) ?: $default;
+    }
+
+    private function getRealIpAddr()
+    {
+        if (!empty($_SERVER['HTTP_CLIENT_IP'])) {
+            //check ip from share internet
+            $ip=$_SERVER['HTTP_CLIENT_IP'];
+        } elseif (!empty($_SERVER['HTTP_X_FORWARDED_FOR'])) {  //to check ip is pass from proxy
+            $ip=$_SERVER['HTTP_X_FORWARDED_FOR'];
+        } else {
+            $ip=$_SERVER['REMOTE_ADDR'];
+        }
+        return $ip;
+    }
+
+    /**
+     * @throws AuthDbConnectionNotSet
+     * @throws TablesDoesNotExistsException
+     */
+    public function createFailedLoginAttempt(string $ip): bool
+    {
+        if(!$this->tableExists($this->failedLoginAttemptsTableName)) {
+            throw new TablesDoesNotExistsException($this->failedLoginAttemptsTableName);
+        }
+        $values = [":ip"];
+        $fields = [$this->throttleControlIpAddressColumnName];
+        $bindings = [
+            ":ip" => $ip
+        ];
+        if ($this->timestampsConfig->isEnabled()) {
+            $fields[] = $this->timestampsConfig->createdAtFieldName;
+            $fields[] = $this->timestampsConfig->updatedAtFieldName;
+            $values[] = "NOW()";
+            $values[] = "NOW()";
+        }
+        $fieldsStr = implode(", ", $fields);
+        $valuesStr = implode(", ", $values);
+        $sql = "INSERT INTO {$this->failedLoginAttemptsTableName} ({$fieldsStr}) VALUES ({$valuesStr})";
+        $stmt = $this->connection->prepare($sql);
+        return $stmt->execute($bindings);
     }
 }
