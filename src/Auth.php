@@ -256,9 +256,9 @@ class Auth
         }
     }
 
-    private function env(string $key, string $default = ""): array|false|string
+    private function env(string $key, string $default = NULL): string|null
     {
-        return getenv($key) ?: $default;
+        return $_ENV[$key] ?? $_SERVER[$key] ?? $default;
     }
 
     private function getRealIpAddr()
